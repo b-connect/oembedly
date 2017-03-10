@@ -1,0 +1,7 @@
+name: Oembedly
+type: module
+description: Oembedly
+core: 8.x
+package: Embed
+dependencies:
+  - link
