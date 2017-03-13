@@ -1,0 +1,15 @@
+min_image_width: 100
+min_image_height: 100
+images_blacklist: 'example.com/*'
+choose_bigger_image: TRUE
+html:
+  max_images: 10
+  external_images: TRUE
+oembed:
+  paramters: []
+  embedly_key: ''
+  iframely_key: ''
+  iframely_url: 'http://88.198.62.12:8080'
+google:
+  key: ''
+soundcloud: ''

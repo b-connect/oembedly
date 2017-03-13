@@ -1,5 +1,4 @@
 services:
   oembedly.manager:
     class: Drupal\oembedly\OembedlyManagerService
-    arguments: ['@config.factory']
-
+    arguments: ['@config.factory', '@cache.default']

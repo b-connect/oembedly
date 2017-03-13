@@ -3,6 +3,8 @@
 namespace Drupal\oembedly;
 
 use Drupal\Core\Config\ConfigFactory;
+use Drupal\Core\Cache\CacheBackendInterface;
+use Drupal\Core\Config\Config;
 
 /**
  * Class OembedlyManagerService.
@@ -17,50 +19,48 @@ class OembedlyManagerService implements OembedlyManagerServiceInterface {
    * @var \Drupal\Core\Config\ConfigFactory
    */
   protected $configFactory;
+  protected $cacheBackend;
+  const MAX_AGE = 3600;
 
   /**
    * Constructor.
    */
-  public function __construct(ConfigFactory $config_factory) {
+  public function __construct(ConfigFactory $config_factory, CacheBackendInterface $cache_backend) {
     $this->configFactory = $config_factory;
+    $this->cacheBackend = $cache_backend;
   }
 
   /**
    * Constructor.
    */
-  public function createEmbed($url, array $config = []) {
-    $config = [
-      'min_image_width' => 100,
-      'min_image_height' => 100,
-      'images_blacklist' => 'example.com/*',
-      'choose_bigger_image' => TRUE,
-      'html' => [
-        'max_images' => 10,
-        'external_images' => TRUE,
-      ],
-      'oembed' => [
-        'parameters' => [],
-        'embedly_key' => 'YOUR_KEY',
-        'iframely_key' => 'YOUR_KEY',
-        'iframely_url' => 'http://88.198.62.12:8080',
-      ],
-      'google' => [
-        'key' => 'YOUR_KEY',
-      ],
-      'soundcloud' => [
-        'key' => 'YOUR_KEY',
-      ],
-    ];
-    return OembedlyEmbed::create($url, $config);
+  public function createEmbed($url, Config $config) {
+    $configKey = 'oembedly_' . md5($url);
+    if ($data = $this->cacheBackend->get($configKey)) {
+      return $data->data;
+    }
+    $info = OembedlyEmbed::create($url, $config->getRawData());
+    $this->cacheBackend->set($configKey, $info, time() + OembedlyManagerService::MAX_AGE);
+    return $info;
   }
 
+  /**
+   * {@inheritdoc}
+   */
   public function build($url) {
-    $info = $this->createEmbed($url);
-    return [
+    $config = $this->configFactory->get('oembedly.settings');
+    $info = $this->createEmbed($url, $config);
+    if (!$info) {
+      return [];
+    }
+    $renderer = \Drupal::service('renderer');
+    $build = [
       '#code' => $info->getCode(),
       '#theme' => 'oembedly',
       '#info' => $info,
+      '#cache' => ['max-age' => OembedlyManagerService::MAX_AGE],
     ];
+    $renderer->addCacheableDependency($build, $config);
+    return $build;
   }
 
 }

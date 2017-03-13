@@ -86,14 +86,11 @@ class OembedlyFieldFormatter extends FormatterBase  implements ContainerFactoryP
 
     foreach ($items as $delta => $item) {
       $elements[$delta] = [
-        '#markup' => 'Rendering ' . $delta,
-        '#attached' => [
-          'placeholders' => [
-            'Rendering ' . $delta => [
-              '#lazy_builder' => ['oembedly.manager:build', [$item->uri]],
-            ],
-          ],
+        '#lazy_builder' => ['oembedly.manager:build', [$item->uri]],
+        '#cache' => [
+          'contexts' => ['user', 'url.path'],
         ],
+        '#create_placeholder' => TRUE,
       ];
     }
 
