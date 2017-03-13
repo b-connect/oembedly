@@ -30,7 +30,7 @@ function oembedly_theme() {
   return [
     'oembedly' => [
       'template' => 'oembedly',
-      'render element' => 'children',
+      'variables' => ['info' => NULL, 'code' => NULL],
     ],
   ];
 }
